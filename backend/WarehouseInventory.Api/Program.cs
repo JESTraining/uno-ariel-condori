@@ -3,6 +3,7 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using WarehouseInventory.Api.Infrastructure.Data;
 using WarehouseInventory.Api.Infrastructure.Repositories;
+using WarehouseInventory.Api.Mapping;
 using WarehouseInventory.Api.Services;
 using WarehouseInventory.Api.Validation;
 
@@ -17,6 +18,9 @@ builder.Services.AddDbContext<WarehouseDbContext>(options =>
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<StockService>();
+
+// Register all AutoMapper profiles from the Mapping namespace
+builder.Services.AddAutoMapper(typeof(ProductMappingProfile).Assembly);
 
 builder.Services.AddControllers();
 builder.Services.AddFluentValidationAutoValidation(options =>

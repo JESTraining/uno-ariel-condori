@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using WarehouseInventory.Api.Contracts.Stock;
 using WarehouseInventory.Api.Domain.Entities;
 using WarehouseInventory.Api.Infrastructure.Data;
@@ -10,6 +11,7 @@ namespace WarehouseInventory.Api.Services;
 public class StockService(
     IUnitOfWork unitOfWork,
     WarehouseDbContext dbContext,
+    IMapper mapper,
     ILogger<StockService> logger)
 {
     public async Task<StockMovementResultDto?> SaveMovementAsync(
@@ -87,6 +89,6 @@ public class StockService(
             movement.CreatedBy,
             movement.CreatedAt);
 
-        return new StockMovementResultDto(product.Id, previousStock, newStock, movement.ToDto());
+        return new StockMovementResultDto(product.Id, previousStock, newStock, mapper.Map<StockMovementDto>(movement));
     }
 }

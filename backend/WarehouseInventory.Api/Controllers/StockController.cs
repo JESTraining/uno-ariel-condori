@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using AutoMapper;
 using WarehouseInventory.Api.Contracts.Products;
 using WarehouseInventory.Api.Contracts.Stock;
 using WarehouseInventory.Api.Infrastructure.Repositories;
@@ -10,7 +11,7 @@ namespace WarehouseInventory.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class StockController(IUnitOfWork unitOfWork, StockService stockService) : ControllerBase
+public class StockController(IUnitOfWork unitOfWork, StockService stockService, IMapper mapper) : ControllerBase
 {
     [HttpPost("movements")]
     public async Task<ActionResult<StockMovementResultDto>> SaveMovement(
@@ -37,7 +38,7 @@ public class StockController(IUnitOfWork unitOfWork, StockService stockService) 
         CancellationToken cancellationToken)
     {
         var products = await unitOfWork.Products.GetLowStockAsync(cancellationToken);
-        return Ok(products.Select(product => product.ToListItemDto()).ToArray());
+        return Ok(products.Select(product => mapper.Map<ProductListItemDto>(product)).ToArray());
     }
 
     [HttpGet("movements/{productId:guid}")]
@@ -52,6 +53,6 @@ public class StockController(IUnitOfWork unitOfWork, StockService stockService) 
         }
 
         var movements = await unitOfWork.StockMovements.GetByProductIdAsync(productId, cancellationToken);
-        return Ok(movements.Select(movement => movement.ToDto()).ToArray());
+        return Ok(movements.Select(movement => mapper.Map<StockMovementDto>(movement)).ToArray());
     }
 }

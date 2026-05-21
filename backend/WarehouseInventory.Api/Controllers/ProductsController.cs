@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using AutoMapper;
 using WarehouseInventory.Api.Contracts.Products;
 using WarehouseInventory.Api.Domain.Entities;
 using WarehouseInventory.Api.Infrastructure.Data;
@@ -11,7 +12,7 @@ namespace WarehouseInventory.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbContext) : ControllerBase
+public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbContext, IMapper mapper) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProductListItemDto>>> List(
@@ -20,7 +21,7 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
     {
         var result = await unitOfWork.Products.ListAsync(query, cancellationToken);
         return Ok(new PagedResult<ProductListItemDto>(
-            result.Items.Select(product => product.ToListItemDto()).ToArray(),
+            result.Items.Select(product => mapper.Map<ProductListItemDto>(product)).ToArray(),
             result.Page,
             result.PageSize,
             result.TotalCount));
@@ -30,14 +31,14 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
     public async Task<ActionResult<ProductDetailsDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var product = await unitOfWork.Products.GetByIdAsync(id, cancellationToken);
-        return product is null ? NotFound() : Ok(product.ToDetailsDto());
+        return product is null ? NotFound() : Ok(mapper.Map<ProductDetailsDto>(product));
     }
 
     [HttpGet("barcode/{barcode}")]
     public async Task<ActionResult<ProductDetailsDto>> GetByBarcode(string barcode, CancellationToken cancellationToken)
     {
         var product = await unitOfWork.Products.GetByBarcodeAsync(barcode, cancellationToken);
-        return product is null ? NotFound() : Ok(product.ToDetailsDto());
+        return product is null ? NotFound() : Ok(mapper.Map<ProductDetailsDto>(product));
     }
 
     [HttpPost]
@@ -71,7 +72,7 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
             return Conflict(new { message = "SKU or barcode already exists." });
         }
 
-        return CreatedAtAction(nameof(GetById), new { id = product.Id }, product.ToDetailsDto());
+        return CreatedAtAction(nameof(GetById), new { id = product.Id }, mapper.Map<ProductDetailsDto>(product));
     }
 
     [HttpPut("{id:guid}")]
@@ -113,7 +114,7 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
             return Conflict(new { message = "SKU or barcode already exists." });
         }
 
-        return Ok(product.ToDetailsDto());
+        return Ok(mapper.Map<ProductDetailsDto>(product));
     }
 
     [HttpDelete("{id:guid}")]
