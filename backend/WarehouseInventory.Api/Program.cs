@@ -17,7 +17,8 @@ builder.Services.AddDbContext<WarehouseDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<StockService>();
+builder.Services.AddScoped<IStockService, StockService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 
 // Register all AutoMapper profiles from the Mapping namespace
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile).Assembly);

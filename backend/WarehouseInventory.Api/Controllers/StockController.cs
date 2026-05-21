@@ -11,7 +11,7 @@ namespace WarehouseInventory.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class StockController(IUnitOfWork unitOfWork, StockService stockService, IMapper mapper) : ControllerBase
+public class StockController(IUnitOfWork unitOfWork, IStockService stockService, IMapper mapper) : ControllerBase
 {
     [HttpPost("movements")]
     public async Task<ActionResult<StockMovementResultDto>> SaveMovement(

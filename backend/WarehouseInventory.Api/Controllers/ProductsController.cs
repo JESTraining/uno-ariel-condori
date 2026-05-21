@@ -1,44 +1,34 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Npgsql;
-using AutoMapper;
 using WarehouseInventory.Api.Contracts.Products;
-using WarehouseInventory.Api.Domain.Entities;
-using WarehouseInventory.Api.Infrastructure.Data;
-using WarehouseInventory.Api.Infrastructure.Repositories;
-using WarehouseInventory.Api.Mapping;
+using WarehouseInventory.Api.Services;
 
 namespace WarehouseInventory.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbContext, IMapper mapper) : ControllerBase
+public class ProductsController(IProductService productService) : ControllerBase
 {
     [HttpGet]
     public async Task<ActionResult<PagedResult<ProductListItemDto>>> List(
         [FromQuery] ProductQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await unitOfWork.Products.ListAsync(query, cancellationToken);
-        return Ok(new PagedResult<ProductListItemDto>(
-            result.Items.Select(product => mapper.Map<ProductListItemDto>(product)).ToArray(),
-            result.Page,
-            result.PageSize,
-            result.TotalCount));
+        var result = await productService.GetProducts(query, cancellationToken);
+        return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProductDetailsDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var product = await unitOfWork.Products.GetByIdAsync(id, cancellationToken);
-        return product is null ? NotFound() : Ok(mapper.Map<ProductDetailsDto>(product));
+        var product = await productService.GetByIdAsync(id, cancellationToken);
+        return product is null ? NotFound() : Ok(product);
     }
 
     [HttpGet("barcode/{barcode}")]
     public async Task<ActionResult<ProductDetailsDto>> GetByBarcode(string barcode, CancellationToken cancellationToken)
     {
-        var product = await unitOfWork.Products.GetByBarcodeAsync(barcode, cancellationToken);
-        return product is null ? NotFound() : Ok(mapper.Map<ProductDetailsDto>(product));
+        var product = await productService.GetByBarcodeAsync(barcode, cancellationToken);
+        return product is null ? NotFound() : Ok(product);
     }
 
     [HttpPost]
@@ -46,33 +36,15 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
         CreateProductRequest request,
         CancellationToken cancellationToken)
     {
-        var category = await GetOrCreateCategoryAsync(request.Category, cancellationToken);
-        var location = await GetOrCreateLocationAsync(request.Location, cancellationToken);
-        var product = new Product
-        {
-            Sku = request.Sku.Trim(),
-            Barcode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim(),
-            Name = request.Name.Trim(),
-            CategoryId = category.Id,
-            LocationId = location.Id,
-            Category = category,
-            Location = location,
-            Price = request.Price,
-            ReorderThreshold = request.ReorderThreshold
-        };
-
-        await unitOfWork.Products.AddAsync(product, cancellationToken);
-
         try
         {
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            var product = await productService.CreateAsync(request, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
-        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
+        catch (InvalidOperationException exception)
         {
-            return Conflict(new { message = "SKU or barcode already exists." });
+            return Conflict(new { message = exception.Message });
         }
-
-        return CreatedAtAction(nameof(GetById), new { id = product.Id }, mapper.Map<ProductDetailsDto>(product));
     }
 
     [HttpPut("{id:guid}")]
@@ -81,97 +53,28 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
         UpdateProductRequest request,
         CancellationToken cancellationToken)
     {
-        var product = await unitOfWork.Products.GetByIdAsync(id, cancellationToken);
-        if (product is null)
-        {
-            return NotFound();
-        }
-
-        dbContext.Entry(product).Property(entity => entity.Version).OriginalValue = request.Version;
-        product.Sku = request.Sku.Trim();
-        product.Barcode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim();
-        product.Name = request.Name.Trim();
-        var category = await GetOrCreateCategoryAsync(request.Category, cancellationToken);
-        var location = await GetOrCreateLocationAsync(request.Location, cancellationToken);
-        product.CategoryId = category.Id;
-        product.LocationId = location.Id;
-        product.Category = category;
-        product.Location = location;
-        product.Price = request.Price;
-        product.ReorderThreshold = request.ReorderThreshold;
-        product.Version = Guid.NewGuid();
-
         try
         {
-            await unitOfWork.SaveChangesAsync(cancellationToken);
+            var product = await productService.UpdateAsync(id, request, cancellationToken);
+            return Ok(product);
         }
-        catch (DbUpdateConcurrencyException)
+        catch (InvalidOperationException exception)
         {
-            return Conflict(new { message = "Product was modified by another user. Refresh and retry." });
+            return exception.Message.Contains("not found") ? NotFound() : Conflict(new { message = exception.Message });
         }
-        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
-        {
-            return Conflict(new { message = "SKU or barcode already exists." });
-        }
-
-        return Ok(mapper.Map<ProductDetailsDto>(product));
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var product = await unitOfWork.Products.GetByIdAsync(id, cancellationToken);
-        if (product is null)
+        try
+        {
+            await productService.DeleteAsync(id, cancellationToken);
+            return NoContent();
+        }
+        catch (InvalidOperationException)
         {
             return NotFound();
         }
-
-        product.IsActive = false;
-        product.Version = Guid.NewGuid();
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return NoContent();
-    }
-
-    private static bool IsUniqueViolation(DbUpdateException exception) =>
-        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
-
-    private async Task<Category> GetOrCreateCategoryAsync(string name, CancellationToken cancellationToken)
-    {
-        var normalizedName = name.Trim();
-        var category = await dbContext.Categories
-            .FirstOrDefaultAsync(item => item.Name.ToLower() == normalizedName.ToLower(), cancellationToken);
-
-        if (category is not null)
-        {
-            return category;
-        }
-
-        var id = CreateEntityId(normalizedName);
-        category = new Category { Id = id, Name = normalizedName };
-        dbContext.Categories.Add(category);
-        return category;
-    }
-
-    private async Task<WarehouseLocation> GetOrCreateLocationAsync(string name, CancellationToken cancellationToken)
-    {
-        var normalizedName = name.Trim();
-        var location = await dbContext.WarehouseLocations
-            .FirstOrDefaultAsync(item => item.Name.ToLower() == normalizedName.ToLower(), cancellationToken);
-
-        if (location is not null)
-        {
-            return location;
-        }
-
-        var id = CreateEntityId(normalizedName);
-        location = new WarehouseLocation { Id = id, Name = normalizedName };
-        dbContext.WarehouseLocations.Add(location);
-        return location;
-    }
-
-    private static string CreateEntityId(string name)
-    {
-        var id = name.Trim().ToUpperInvariant().Replace(" ", string.Empty);
-        return id.Length <= 16 ? id : id[..16];
     }
 }

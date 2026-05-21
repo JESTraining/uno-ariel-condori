@@ -12,7 +12,7 @@ public class StockService(
     IUnitOfWork unitOfWork,
     WarehouseDbContext dbContext,
     IMapper mapper,
-    ILogger<StockService> logger)
+    ILogger<StockService> logger) : IStockService
 {
     public async Task<StockMovementResultDto?> SaveMovementAsync(
         StockMovementRequest request,
