@@ -13,13 +13,13 @@ namespace WarehouseInventory.Api.Controllers;
 public class StockController(IUnitOfWork unitOfWork, StockService stockService) : ControllerBase
 {
     [HttpPost("movements")]
-    public async Task<ActionResult<StockMovementResultDto>> RecordMovement(
+    public async Task<ActionResult<StockMovementResultDto>> SaveMovement(
         StockMovementRequest request,
         CancellationToken cancellationToken)
     {
         try
         {
-            var result = await stockService.RecordMovementAsync(request, cancellationToken);
+            var result = await stockService.SaveMovementAsync(request, cancellationToken);
             return result is null ? NotFound() : Ok(result);
         }
         catch (InvalidOperationException exception) when (exception.Message == "Insufficient stock")

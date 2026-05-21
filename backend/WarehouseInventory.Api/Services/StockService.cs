@@ -12,7 +12,7 @@ public class StockService(
     WarehouseDbContext dbContext,
     ILogger<StockService> logger)
 {
-    public async Task<StockMovementResultDto?> RecordMovementAsync(
+    public async Task<StockMovementResultDto?> SaveMovementAsync(
         StockMovementRequest request,
         CancellationToken cancellationToken)
     {
@@ -30,6 +30,16 @@ public class StockService(
         var newStock = previousStock + request.QuantityChange;
         if (newStock < 0)
         {
+            logger.LogWarning(
+                "Rejected stock movement due to insufficient stock. ProductId={ProductId}, QuantityChange={QuantityChange}, PreviousStock={PreviousStock}, RequestedNewStock={RequestedNewStock}, Reason={Reason}, CreatedBy={CreatedBy}, Version={Version}",
+                request.ProductId,
+                request.QuantityChange,
+                previousStock,
+                newStock,
+                request.Reason,
+                request.CreatedBy,
+                request.Version);
+
             throw new InvalidOperationException("Insufficient stock");
         }
 
@@ -46,8 +56,26 @@ public class StockService(
         };
 
         await unitOfWork.StockMovements.AddAsync(movement, cancellationToken);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException exception)
+        {
+            logger.LogWarning(
+                exception,
+                "Rejected stock movement due to concurrency conflict. ProductId={ProductId}, QuantityChange={QuantityChange}, PreviousStock={PreviousStock}, RequestedNewStock={RequestedNewStock}, Reason={Reason}, CreatedBy={CreatedBy}, Version={Version}",
+                request.ProductId,
+                request.QuantityChange,
+                previousStock,
+                newStock,
+                movement.Reason,
+                movement.CreatedBy,
+                request.Version);
+
+            throw;
+        }
 
         logger.LogInformation(
             "Stock changed for product {ProductId}. QuantityChange={QuantityChange}, PreviousStock={PreviousStock}, NewStock={NewStock}, Reason={Reason}, CreatedBy={CreatedBy}, CreatedAt={CreatedAt}",
