@@ -1,3 +1,4 @@
+using System;
 using Microsoft.EntityFrameworkCore;
 using WarehouseInventory.Api.Domain.Entities;
 
@@ -12,27 +13,44 @@ public class WarehouseDbContext(DbContextOptions<WarehouseDbContext> options) : 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresExtension("citext");
+
         modelBuilder.Entity<Category>(entity =>
         {
             entity.HasKey(category => category.Id);
-            entity.Property(category => category.Name).HasMaxLength(120).IsRequired();
+            entity.Property(category => category.Id).HasMaxLength(16).IsRequired();
+            entity.Property(category => category.Name).HasColumnType("citext").HasMaxLength(120).IsRequired();
             entity.HasIndex(category => category.Name).IsUnique();
+
+            entity.HasData(
+                new Category { Id = "ELE", Name = "Electronics" },
+                new Category { Id = "OFS", Name = "Office Supplies" },
+                new Category { Id = "FUR", Name = "Furniture" },
+                new Category { Id = "CLE", Name = "Cleaning" });
         });
 
         modelBuilder.Entity<WarehouseLocation>(entity =>
         {
             entity.HasKey(location => location.Id);
-            entity.Property(location => location.Code).HasMaxLength(80).IsRequired();
-            entity.Property(location => location.Description).HasMaxLength(200);
-            entity.HasIndex(location => location.Code).IsUnique();
+            entity.Property(location => location.Id).HasMaxLength(16).IsRequired();
+            entity.Property(location => location.Name).HasMaxLength(120).IsRequired();
+            entity.HasIndex(location => location.Name).IsUnique();
+
+            entity.HasData(
+                new WarehouseLocation { Id = "MRB", Name = "Main receiving bay" },
+                new WarehouseLocation { Id = "BUS", Name = "Bulk storage" },
+                new WarehouseLocation { Id = "PIA", Name = "Picking aisle" },
+                new WarehouseLocation { Id = "OUT", Name = "Outbound staging" });
         });
 
         modelBuilder.Entity<Product>(entity =>
         {
             entity.HasKey(product => product.Id);
-            entity.Property(product => product.Sku).HasMaxLength(64).IsRequired();
+            entity.Property(product => product.Sku).HasColumnType("citext").HasMaxLength(64).IsRequired();
             entity.Property(product => product.Barcode).HasMaxLength(128);
-            entity.Property(product => product.Name).HasMaxLength(200).IsRequired();
+            entity.Property(product => product.Name).HasColumnType("citext").HasMaxLength(200).IsRequired();
+            entity.Property(product => product.CategoryId).HasMaxLength(16).IsRequired();
+            entity.Property(product => product.LocationId).HasMaxLength(16).IsRequired();
             entity.Property(product => product.Price).HasPrecision(18, 2);
             entity.Property(product => product.Version).IsConcurrencyToken();
             entity.HasIndex(product => product.Sku).IsUnique();

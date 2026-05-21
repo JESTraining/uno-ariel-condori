@@ -52,6 +52,8 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
             Sku = request.Sku.Trim(),
             Barcode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim(),
             Name = request.Name.Trim(),
+            CategoryId = category.Id,
+            LocationId = location.Id,
             Category = category,
             Location = location,
             Price = request.Price,
@@ -88,8 +90,12 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
         product.Sku = request.Sku.Trim();
         product.Barcode = string.IsNullOrWhiteSpace(request.Barcode) ? null : request.Barcode.Trim();
         product.Name = request.Name.Trim();
-        product.Category = await GetOrCreateCategoryAsync(request.Category, cancellationToken);
-        product.Location = await GetOrCreateLocationAsync(request.Location, cancellationToken);
+        var category = await GetOrCreateCategoryAsync(request.Category, cancellationToken);
+        var location = await GetOrCreateLocationAsync(request.Location, cancellationToken);
+        product.CategoryId = category.Id;
+        product.LocationId = location.Id;
+        product.Category = category;
+        product.Location = location;
         product.Price = request.Price;
         product.ReorderThreshold = request.ReorderThreshold;
         product.Version = Guid.NewGuid();
@@ -139,24 +145,32 @@ public class ProductsController(IUnitOfWork unitOfWork, WarehouseDbContext dbCon
             return category;
         }
 
-        category = new Category { Name = normalizedName };
+        var id = CreateEntityId(normalizedName);
+        category = new Category { Id = id, Name = normalizedName };
         dbContext.Categories.Add(category);
         return category;
     }
 
-    private async Task<WarehouseLocation> GetOrCreateLocationAsync(string code, CancellationToken cancellationToken)
+    private async Task<WarehouseLocation> GetOrCreateLocationAsync(string name, CancellationToken cancellationToken)
     {
-        var normalizedCode = code.Trim();
+        var normalizedName = name.Trim();
         var location = await dbContext.WarehouseLocations
-            .FirstOrDefaultAsync(item => item.Code.ToLower() == normalizedCode.ToLower(), cancellationToken);
+            .FirstOrDefaultAsync(item => item.Name.ToLower() == normalizedName.ToLower(), cancellationToken);
 
         if (location is not null)
         {
             return location;
         }
 
-        location = new WarehouseLocation { Code = normalizedCode };
+        var id = CreateEntityId(normalizedName);
+        location = new WarehouseLocation { Id = id, Name = normalizedName };
         dbContext.WarehouseLocations.Add(location);
         return location;
+    }
+
+    private static string CreateEntityId(string name)
+    {
+        var id = name.Trim().ToUpperInvariant().Replace(" ", string.Empty);
+        return id.Length <= 16 ? id : id[..16];
     }
 }

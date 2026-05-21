@@ -11,13 +11,15 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AlterDatabase()
+                .Annotation("Npgsql:PostgresExtension:citext", ",,");
+
             migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    Id = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    Name = table.Column<string>(type: "citext", maxLength: 120, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -28,14 +30,34 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
                 name: "WarehouseLocations",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Code = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
-                    Description = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    Id = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_WarehouseLocations", x => x.Id);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Categories",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { "ELE", "Electronics" },
+                    { "OFS", "Office Supplies" },
+                    { "FUR", "Furniture" },
+                    { "CLE", "Cleaning" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "WarehouseLocations",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { "MRB", "Main receiving bay" },
+                    { "BUS", "Bulk storage" },
+                    { "PIA", "Picking aisle" },
+                    { "OUT", "Outbound staging" }
                 });
 
             migrationBuilder.CreateTable(
@@ -43,11 +65,11 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Sku = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Sku = table.Column<string>(type: "citext", maxLength: 64, nullable: false),
                     Barcode = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: true),
-                    Name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    LocationId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "citext", maxLength: 200, nullable: false),
+                    CategoryId = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    LocationId = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
                     Price = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false),
                     CurrentStock = table.Column<int>(type: "integer", nullable: false),
                     ReorderThreshold = table.Column<int>(type: "integer", nullable: false),
@@ -130,15 +152,55 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
                 columns: new[] { "ProductId", "CreatedAt" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_WarehouseLocations_Code",
+                name: "IX_WarehouseLocations_Name",
                 table: "WarehouseLocations",
-                column: "Code",
+                column: "Name",
                 unique: true);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DeleteData(
+                table: "Categories",
+                keyColumn: "Id",
+                keyValue: "ELE");
+
+            migrationBuilder.DeleteData(
+                table: "Categories",
+                keyColumn: "Id",
+                keyValue: "OFS");
+
+            migrationBuilder.DeleteData(
+                table: "Categories",
+                keyColumn: "Id",
+                keyValue: "FUR");
+
+            migrationBuilder.DeleteData(
+                table: "Categories",
+                keyColumn: "Id",
+                keyValue: "CLE");
+
+            migrationBuilder.DeleteData(
+                table: "WarehouseLocations",
+                keyColumn: "Id",
+                keyValue: "MRB");
+
+            migrationBuilder.DeleteData(
+                table: "WarehouseLocations",
+                keyColumn: "Id",
+                keyValue: "BUS");
+
+            migrationBuilder.DeleteData(
+                table: "WarehouseLocations",
+                keyColumn: "Id",
+                keyValue: "PIA");
+
+            migrationBuilder.DeleteData(
+                table: "WarehouseLocations",
+                keyColumn: "Id",
+                keyValue: "OUT");
+
             migrationBuilder.DropTable(
                 name: "StockMovements");
 

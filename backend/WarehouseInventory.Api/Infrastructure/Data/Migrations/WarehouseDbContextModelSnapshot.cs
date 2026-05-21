@@ -20,26 +20,46 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
                 .HasAnnotation("ProductVersion", "8.0.16")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "citext");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("WarehouseInventory.Api.Domain.Entities.Category", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                    b.Property<string>("Id")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
+                        .HasColumnType("citext");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "ELE",
+                            Name = "Electronics"
+                        },
+                        new
+                        {
+                            Id = "OFS",
+                            Name = "Office Supplies"
+                        },
+                        new
+                        {
+                            Id = "FUR",
+                            Name = "Furniture"
+                        },
+                        new
+                        {
+                            Id = "CLEAN",
+                            Name = "Cleaning"
+                        });
 
                     b.ToTable("Categories");
                 });
@@ -54,8 +74,9 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<Guid>("CategoryId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("CategoryId")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<int>("CurrentStock")
                         .HasColumnType("integer");
@@ -63,13 +84,14 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<Guid>("LocationId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("LocationId")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("citext");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(18, 2)
@@ -81,7 +103,7 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
                     b.Property<string>("Sku")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
+                        .HasColumnType("citext");
 
                     b.Property<Guid>("Version")
                         .IsConcurrencyToken()
@@ -143,26 +165,41 @@ namespace WarehouseInventory.Api.Infrastructure.Data.Migrations
 
             modelBuilder.Entity("WarehouseInventory.Api.Domain.Entities.WarehouseLocation", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                    b.Property<string>("Id")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
 
-                    b.Property<string>("Code")
+                    b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Code")
+                    b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasData(
+                        new
+                        {
+                            Id = "MRB",
+                            Name = "Main receiving bay"
+                        },
+                        new
+                        {
+                            Id = "BS",
+                            Name = "Bulk storage"
+                        },
+                        new
+                        {
+                            Id = "PICK",
+                            Name = "Picking aisle"
+                        },
+                        new
+                        {
+                            Id = "OUT",
+                            Name = "Outbound staging"
+                        });
 
                     b.ToTable("WarehouseLocations");
                 });

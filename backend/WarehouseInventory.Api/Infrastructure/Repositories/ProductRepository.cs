@@ -33,7 +33,7 @@ public class ProductRepository(WarehouseDbContext dbContext) : IProductRepositor
         if (!string.IsNullOrWhiteSpace(query.Location))
         {
             var location = query.Location.Trim().ToLower();
-            products = products.Where(product => product.Location != null && product.Location.Code.ToLower() == location);
+            products = products.Where(product => product.Location != null && product.Location.Name.ToLower() == location);
         }
 
         var totalCount = await products.CountAsync(cancellationToken);

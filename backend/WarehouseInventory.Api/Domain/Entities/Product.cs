@@ -6,8 +6,8 @@ public class Product
     public required string Sku { get; set; }
     public string? Barcode { get; set; }
     public required string Name { get; set; }
-    public Guid CategoryId { get; set; }
-    public Guid LocationId { get; set; }
+    public required string CategoryId { get; set; }
+    public required string LocationId { get; set; }
     public decimal Price { get; set; }
     public int CurrentStock { get; set; }
     public int ReorderThreshold { get; set; }
