@@ -1,0 +1,27 @@
+<div class="page-header">
+  <h2>Warehouse</h2>
+  <button class="btn-primary" (click)="openCreateForm()">+ New Product</button>
+</div>
+
+<app-product-filters
+  [initialFilters]="store.filters()"
+  (filterChange)="store.updateFilters($event)"
+/>
+
+@if (store.loading()) {
+  <div class="loading-spinner">Loading...</div>
+} @else {
+  <app-product-table
+    [products]="store.products()"
+    [totalCount]="store.totalCount()"
+    [currentPage]="store.filters().page"
+    [pageSize]="store.filters().pageSize"
+    (pageChange)="onPageChange($event)"
+    (edit)="onEditProduct($event)"
+    (delete)="onDeleteProduct($event)"
+  />
+}
+
+@if (store.error()) {
+  <div class="error-banner">{{ store.error() }}</div>
+}

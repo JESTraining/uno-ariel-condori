@@ -1,0 +1,15 @@
+<div class="filter-container">
+  <input
+    [formControl]="filterForm.controls.search"
+    type="text"
+    placeholder="Search by name or SKU..."
+    class="search-input"
+  />
+
+  <select [formControl]="filterForm.controls.category" class="category-select">
+    <option value="">All Categories</option>
+    <option value="Storage">Storage</option>
+    <option value="Tools">Tools</option>
+    <option value="Electronics">Electronics</option>
+  </select>
+</div>
