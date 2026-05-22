@@ -32,6 +32,18 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks();
 
+// Configure CORS for local frontends
+var allowedOrigins = new[] { "http://localhost:4200", "http://localhost:8080" };
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowLocalClients", policy =>
+    {
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
 
 if (app.Configuration.GetValue("ApplyMigrations", false))
@@ -48,6 +60,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowLocalClients");
 app.MapControllers();
 app.MapHealthChecks("/health");
 
