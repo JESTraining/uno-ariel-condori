@@ -56,8 +56,6 @@ public class ProductService(
             Name = request.Name.Trim(),
             CategoryId = category.Id,
             LocationId = location.Id,
-            Category = category,
-            Location = location,
             Price = request.Price,
             ReorderThreshold = request.ReorderThreshold
         };
@@ -147,11 +145,10 @@ public class ProductService(
     private static bool IsUniqueViolation(DbUpdateException exception) =>
         exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 
-    private async Task<Category> GetOrCreateCategoryAsync(string name, CancellationToken cancellationToken)
+    private async Task<Category> GetOrCreateCategoryAsync(string id, CancellationToken cancellationToken)
     {
-        var normalizedName = name.Trim();
         var category = await dbContext.Categories
-            .FirstOrDefaultAsync(item => item.Name.ToLower() == normalizedName.ToLower(), cancellationToken);
+            .FirstOrDefaultAsync(item => item.Id.ToLower() == id.ToLower(), cancellationToken);
 
         if (category is not null)
         {
@@ -159,18 +156,16 @@ public class ProductService(
             return category;
         }
 
-        var id = CreateEntityId(normalizedName);
-        category = new Category { Id = id, Name = normalizedName };
+        category = new Category { Id = id, Name = id };
         dbContext.Categories.Add(category);
-        logger.LogDebug("Created new category: {CategoryId} - {CategoryName}", id, normalizedName);
+        logger.LogDebug("Created new category: {CategoryId} - {CategoryName}", id, id);
         return category;
     }
 
-    private async Task<WarehouseLocation> GetOrCreateLocationAsync(string name, CancellationToken cancellationToken)
+    private async Task<WarehouseLocation> GetOrCreateLocationAsync(string id, CancellationToken cancellationToken)
     {
-        var normalizedName = name.Trim();
         var location = await dbContext.WarehouseLocations
-            .FirstOrDefaultAsync(item => item.Name.ToLower() == normalizedName.ToLower(), cancellationToken);
+            .FirstOrDefaultAsync(item => item.Id.ToLower() == id.ToLower(), cancellationToken);
 
         if (location is not null)
         {
@@ -178,10 +173,9 @@ public class ProductService(
             return location;
         }
 
-        var id = CreateEntityId(normalizedName);
-        location = new WarehouseLocation { Id = id, Name = normalizedName };
+        location = new WarehouseLocation { Id = id, Name = id };
         dbContext.WarehouseLocations.Add(location);
-        logger.LogDebug("Created new location: {LocationId} - {LocationName}", id, normalizedName);
+        logger.LogDebug("Created new location: {LocationId} - {LocationName}", id, id);
         return location;
     }
 
