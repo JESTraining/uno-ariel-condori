@@ -9,4 +9,5 @@ export interface ProductListItemDto {
   currentStock: number;
   reorderThreshold: number;
   isLowStock: boolean;
+  version: string;
 }

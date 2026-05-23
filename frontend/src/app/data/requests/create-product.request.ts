@@ -6,4 +6,5 @@ export interface CreateProductRequest {
   location: string;
   price: number;
   reorderThreshold: number;
+  version: string;
 }

@@ -28,7 +28,8 @@ export class ProductFormComponent {
     category: ['', [Validators.required]],
     location: ['', [Validators.required]],
     price: [0, [Validators.required, Validators.min(0.01)]],
-    reorderThreshold: [10, [Validators.required, Validators.min(0)]]
+    reorderThreshold: [10, [Validators.required, Validators.min(0)]],
+    version: [ this.productToEdit()?.version || '00000000-0000-0000-0000-000000000000' ]
   });
 
   constructor() {

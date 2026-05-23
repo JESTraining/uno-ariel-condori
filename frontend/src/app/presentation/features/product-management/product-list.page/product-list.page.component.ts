@@ -44,7 +44,6 @@ export class ProductListPage {
       this.selectedProduct.set({
         ...item,
         isActive: true,
-        version: '00000000-0000-0000-0000-000000000000'
       });
       this.isFormOpen.set(true);
     }
