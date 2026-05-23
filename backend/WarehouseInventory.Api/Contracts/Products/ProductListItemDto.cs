@@ -10,5 +10,6 @@ public record ProductListItemDto(
     decimal Price,
     int CurrentStock,
     int ReorderThreshold,
-    bool IsLowStock
+    bool IsLowStock,
+    Guid Version
 );
