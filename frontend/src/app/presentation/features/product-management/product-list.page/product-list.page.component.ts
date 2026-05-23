@@ -1,36 +1,79 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, signal} from '@angular/core';
 import {ProductStore} from '../../../../stores/product.store';
 import {ProductFiltersComponent} from '../product-filters/product-filters.component';
 import {ProductTableComponent} from '../product-table/product-table.component';
+import { ProductFormComponent } from '../product-form/product-form.component';
+import { ConfirmModalComponent } from '../../../shared/confirm-modal/confirm-modal.component';
+import { ProductDetailsDto } from '../../../../data/dto/product-details.dto';
+import { CreateProductRequest } from '../../../../data/requests/create-product.request';
 
 @Component({
   selector: 'app-product-list.page',
   standalone: true,
   imports: [
     ProductFiltersComponent,
-    ProductTableComponent
+    ProductTableComponent,
+    ProductFormComponent,
+    ConfirmModalComponent
   ],
   templateUrl: './product-list.page.component.html',
   styleUrl: './product-list.page.component.scss'
 })
+
 export class ProductListPage {
   protected store = inject(ProductStore);
+
+  isFormOpen = signal<boolean>(false);
+  isDeleteModalOpen = signal<boolean>(false);
+  selectedProduct = signal<ProductDetailsDto | null>(null);
+  
+  #productIdToDelete: string | null = null;
 
   onPageChange(page: number): void {
     this.store.updateFilters({ page });
   }
 
-  onDeleteProduct(id: string): void {
-    if (confirm('¿Are you sure you want to delete this product?')) {
-      this.store.deleteProduct(id);
-    }
+  openCreateForm(): void {
+    this.selectedProduct.set(null);
+    this.isFormOpen.set(true);
   }
 
   onEditProduct(id: string): void {
-    console.log('edit product by ID:', id);
+    const item = this.store.products().find(p => p.id === id);
+    if (item) {
+      this.selectedProduct.set({
+        ...item,
+        isActive: true,
+        version: '00000000-0000-0000-0000-000000000000'
+      });
+      this.isFormOpen.set(true);
+    }
   }
 
-  openCreateForm(): void {
-    console.log('open new form');
+  onSaveProduct(request: CreateProductRequest): void {
+    const product = this.selectedProduct();
+    if (product) {
+      this.store.updateProduct(product.id, request, () => this.closeForm());
+    } else {
+      this.store.createProduct(request, () => this.closeForm());
+    }
+  }
+
+  closeForm(): void {
+    this.isFormOpen.set(false);
+    this.selectedProduct.set(null);
+  }
+
+  onOpenDeleteModal(id: string): void {
+    this.#productIdToDelete = id;
+    this.isDeleteModalOpen.set(true);
+  }
+
+  onConfirmDelete(): void {
+    if (this.#productIdToDelete) {
+      this.store.deleteProduct(this.#productIdToDelete);
+      this.#productIdToDelete = null;
+    }
+    this.isDeleteModalOpen.set(false);
   }
 }

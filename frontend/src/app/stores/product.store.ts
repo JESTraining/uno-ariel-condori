@@ -5,6 +5,7 @@ import {patchState, signalStore, withHooks, withMethods, withState} from '@ngrx/
 import {inject} from '@angular/core';
 import {ProductQuery} from '../data/dto/product-query.dto';
 import {rxMethod} from '@ngrx/signals/rxjs-interop';
+import { CreateProductRequest } from '../data/requests/create-product.request';
 
 const initialState: ProductState = {
   products: [],
@@ -41,6 +42,28 @@ export const ProductStore = signalStore(
 
     return {
       loadProducts,
+
+      createProduct(request: CreateProductRequest, onSuccess: () => void): void {
+        patchState(store, { loading: true });
+        productService.createProduct(request).subscribe({
+          next: () => {
+            loadProducts(store.filters());
+            onSuccess();
+          },
+          error: () => patchState(store, { error: 'Error creating product', loading: false })
+        });
+      },
+
+      updateProduct(id: string, request: Partial<CreateProductRequest>, onSuccess: () => void): void {
+        patchState(store, { loading: true });
+        productService.updateProduct(id, request).subscribe({
+          next: () => {
+            loadProducts(store.filters());
+            onSuccess();
+          },
+          error: () => patchState(store, { error: 'Error updating product', loading: false })
+        });
+      },
 
       updateFilters(partialFilter: Partial<ProductQuery>): void {
         patchState(store, (state: ProductState) => ({
