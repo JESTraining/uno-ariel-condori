@@ -11,5 +11,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./presentation/features/product-management/product-list.page/product-list.page.component')
         .then(m => m.ProductListPage)
+  },
+  {
+    path: 'barcode-scan',
+    loadComponent: () => 
+      import('./presentation/features/barcode/barcode-scan.page/barcode-scan.page.component')
+        .then(m => m.BarcodeScanPage)
   }
 ];

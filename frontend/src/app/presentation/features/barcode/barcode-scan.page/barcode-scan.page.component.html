@@ -1,0 +1,43 @@
+<div class="page-header">
+      <h2>Barcode Rapid Scan Terminal</h2>
+    </div>
+
+    <!-- Scanner Device Mock Input Form Control -->
+    <app-barcode-input (scan)="store.lookupBarcode($event)" />
+
+    <!-- Operation Status Banners -->
+    @if (store.loading()) {
+      <div class="loading-spinner" style="margin: 1rem 0;">Querying warehouse register...</div>
+    }
+
+    @if (store.error()) {
+      <div class="error-banner alert" style="background: var(--danger-bg); padding: 1rem; border-radius: var(--radius); margin: 1rem 0; color: var(--danger);">
+        <strong>Alert:</strong> {{ store.error() }}
+      </div>
+    }
+
+    @if (store.successMessage()) {
+      <div class="success-banner" style="background: #dcfce7; padding: 1rem; border-radius: var(--radius); margin: 1rem 0; color: var(--success);">
+        ✔ {{ store.successMessage() }}
+      </div>
+    }
+
+    <!-- Result Target Workspace Layout Panels -->
+    @if (store.scannedProduct(); as product) {
+      <div class="form-card" style="margin-top: 1.5rem;">
+        <h3 style="margin-bottom: 1rem; color: var(--primary);">Product Identified: {{ product.name }}</h3>
+        
+        <div class="form-row" style="margin-bottom: 2rem; background: #f8fafc; padding: 1rem; border-radius: var(--radius);">
+          <div class="form-group"><strong>SKU Code:</strong> {{ product.sku }}</div>
+          <div class="form-group"><strong>Current Balance:</strong> {{ product.currentStock }} units</div>
+          <div class="form-group"><strong>Unit Valuation Price:</strong> {{ product.price | currency }}</div>
+          <div class="form-group"><strong>Storage Rack Zone:</strong> {{ product.location }}</div>
+        </div>
+
+        <!-- Embedded contextual stock execution adjustments component -->
+        <app-quick-adjustment 
+          [currentStock]="product.currentStock"
+          (submitAdjustment)="store.applyAdjustment($event.quantity, $event.reason)"
+        />
+      </div>
+    }

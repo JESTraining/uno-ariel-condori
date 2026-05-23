@@ -1,0 +1,12 @@
+<div class="filter-container search-box-highlight">
+      <input 
+        #scanField
+        [(ngModel)]="barcodeValue" 
+        (keyup.enter)="onScanTrigger()"
+        type="text" 
+        placeholder="Focus here & scan barcode (or type and press Enter)..." 
+        class="search-input"
+        autocomplete="off"
+      />
+      <button class="btn-primary" (click)="onScanTrigger()">Search</button>
+    </div>

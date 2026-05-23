@@ -43,4 +43,8 @@ export class ProductService extends ApiService {
   deleteProduct(id: string): Observable<void> {
     return this.delete<void>(id);
   }
+
+  getProductByBarcode(barcode: string): Observable<ProductDetailsDto> {
+    return this.get<ProductDetailsDto>(`barcode/${barcode}`);
+  }
 }
