@@ -4,5 +4,6 @@ public record StockMovementResultDto(
     Guid ProductId,
     int PreviousStock,
     int NewStock,
-    StockMovementDto Movement
+    StockMovementDto Movement,
+    Guid Version
 );

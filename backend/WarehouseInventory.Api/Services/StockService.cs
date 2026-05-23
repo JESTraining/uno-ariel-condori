@@ -29,7 +29,7 @@ public class StockService(
         dbContext.Entry(product).Property(entity => entity.Version).OriginalValue = request.Version;
 
         var previousStock = product.CurrentStock;
-        var newStock = previousStock + request.QuantityChange;
+        int newStock = GetNewStock(request, previousStock);
         if (newStock < 0)
         {
             logger.LogWarning(
@@ -89,6 +89,19 @@ public class StockService(
             movement.CreatedBy,
             movement.CreatedAt);
 
-        return new StockMovementResultDto(product.Id, previousStock, newStock, mapper.Map<StockMovementDto>(movement));
+        return new StockMovementResultDto(
+            product.Id,
+            previousStock,
+            newStock,
+            mapper.Map<StockMovementDto>(movement),
+            product.Version);
+    }
+
+    private static int GetNewStock(StockMovementRequest request, int previousStock)
+    {
+        if(request.Reason == "shipped")
+            return previousStock - request.QuantityChange;
+
+        return previousStock + request.QuantityChange;
     }
 }
