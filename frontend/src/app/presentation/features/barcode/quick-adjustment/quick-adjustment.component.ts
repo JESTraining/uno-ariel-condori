@@ -1,21 +1,6 @@
-import { Component, DestroyRef, inject, input, output } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Component, DestroyRef, inject, input, output, OnInit } from '@angular/core';
+import { AbstractControl, NonNullableFormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-
-function quantityValidator(control: AbstractControl): ValidationErrors | null {
-  const quantity = Number(control.value);
-  const reason = control.parent?.get('reason')?.value;
-
-  if (!Number.isFinite(quantity)) {
-    return { quantityInvalid: true };
-  }
-
-  if (reason === 'adjustment') {
-    return quantity === 0 ? { quantityCannotBeZero: true } : null;
-  }
-
-  return quantity > 0 ? null : { quantityMustBePositive: true };
-}
 
 @Component({
   selector: 'app-quick-adjustment',
@@ -25,19 +10,56 @@ function quantityValidator(control: AbstractControl): ValidationErrors | null {
   styleUrl: './quick-adjustment.component.scss'
 })
 
-export class QuickAdjustmentComponent {
+export class QuickAdjustmentComponent implements OnInit {
   private fb = inject(NonNullableFormBuilder);
   private destroyRef = inject(DestroyRef);
+  private quantityValidator: ValidatorFn = Validators.nullValidator;
   
   currentStock = input.required<number>();
   submitAdjustment = output<{ quantity: number; reason: string }>();
 
   adjustForm = this.fb.group({
-    quantity: [1, [Validators.required, quantityValidator]],
+    quantity: [1, [Validators.required]],
     reason: ['received', [Validators.required]]
   });
 
-  constructor() {
+  ngOnInit(): void {
+    const currentStock = this.currentStock();
+
+    this.quantityValidator = (control: AbstractControl): ValidationErrors | null => {
+      const quantity = Number(control.value);
+      const reason = this.adjustForm.controls.reason.value;
+
+      if (!Number.isFinite(quantity)) {
+        return { quantityInvalid: true };
+      }
+
+      if (reason === 'shipped') {
+        if (quantity <= 0) {
+          return { quantityMustBePositive: true };
+        }
+
+        return quantity > currentStock ? { quantityExceedsStock: true } : null;
+      }
+
+      if (reason === 'adjustment') {
+        if (quantity === 0) {
+          return { quantityCannotBeZero: true };
+        }
+
+        if (quantity < 0) {
+          return currentStock + quantity < 0 ? { quantityExceedsStock: true } : null;
+        }
+
+        return null;
+      }
+
+      return quantity > 0 ? null : { quantityMustBePositive: true };
+    };
+
+    this.adjustForm.controls.quantity.setValidators([Validators.required, this.quantityValidator]);
+    this.adjustForm.controls.quantity.updateValueAndValidity({ emitEvent: false });
+
     this.adjustForm.controls.reason.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -55,7 +77,7 @@ export class QuickAdjustmentComponent {
       reason: values.reason
     });
 
-    this.adjustForm.patchValue({ quantity: 0 });
+    this.adjustForm.patchValue({ quantity: 1, reason: 'received' });
     this.adjustForm.markAsPristine();
     this.adjustForm.markAsUntouched();
   }

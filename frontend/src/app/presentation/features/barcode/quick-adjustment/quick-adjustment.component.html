@@ -19,6 +19,17 @@
               type="number"
               [attr.min]="adjustForm.controls.reason.value === 'adjustment' ? null : 1"
             />
+            @if (adjustForm.controls.quantity.touched || adjustForm.controls.quantity.dirty) {
+              @if (adjustForm.controls.quantity.errors?.['quantityMustBePositive']) {
+                <span class="error">Quantity must be a positive number.</span>
+              }
+              @if (adjustForm.controls.quantity.errors?.['quantityCannotBeZero']) {
+                <span class="error">Quantity cannot be zero.</span>
+              }
+              @if (adjustForm.controls.quantity.errors?.['quantityExceedsStock']) {
+                <span class="error">The quantity exceeds the available stock. Max allowed: {{ currentStock() }}.</span>
+              }
+            }
           </div>
         </div>
 

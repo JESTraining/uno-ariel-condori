@@ -167,6 +167,12 @@ tr:hover { background-color: #f8fafc; }
   color: var(--text-muted);
 }
 
+.error {
+  color: var(--danger);
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+}
+
 .form-actions {
   display: flex;
   justify-content: flex-end;
