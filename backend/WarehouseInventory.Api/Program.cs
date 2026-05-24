@@ -19,6 +19,7 @@ builder.Services.AddDbContext<WarehouseDbContext>(options =>
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IStockService, StockService>();
 builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICatalogService, CatalogService>();
 
 // Register all AutoMapper profiles from the Mapping namespace
 builder.Services.AddAutoMapper(typeof(ProductMappingProfile).Assembly);
