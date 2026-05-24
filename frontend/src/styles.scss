@@ -26,7 +26,6 @@ body {
   background-color: var(--bg-app);
   color: var(--text);
   line-height: 1.5;
-  padding: 1.5rem;
 }
 
 .container {
@@ -193,9 +192,7 @@ tr:hover { background-color: #f8fafc; }
 }
 
 // responsive adjustments
-@media (max-width: 768px) {
-  body { padding: 1rem; }
-  
+@media (max-width: 768px) {  
   .filter-container {
     flex-direction: column;
   }
