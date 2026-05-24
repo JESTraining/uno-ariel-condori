@@ -23,5 +23,11 @@ export const routes: Routes = [
     loadComponent: () => 
       import('./presentation/features/stock-movement/stock-movement.page/stock-movement.page.component')
         .then(m => m.StockMovementPage)
+  },
+  {
+    path: 'low-stock-dashboard',
+    loadComponent: () => 
+      import('./presentation/features/stock-movement/low-stock-dashboard.page/low-stock-dashboard.page.component')
+        .then(m => m.LowStockDashboardPage)
   }
 ];

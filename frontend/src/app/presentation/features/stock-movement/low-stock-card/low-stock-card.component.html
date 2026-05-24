@@ -1,0 +1,42 @@
+<div class="stock-card" [ngClass]="{ 'critical-border': isCritical() }">
+      <div class="card-header">
+        <h4>{{ product().name }}</h4>
+        <span class="sku-badge">{{ product().sku }}</span>
+      </div>
+
+      <div class="card-body">
+        <p><strong>Location:</strong> {{ product().location }}</p>
+        
+        <div class="stock-metrics">
+          <div class="metric">
+            <span class="label">Current Stock:</span>
+            <span class="value" [ngClass]="isCritical() ? 'text-critical' : 'text-warning'">
+              {{ product().currentStock }} uds
+            </span>
+          </div>
+          <div class="metric">
+            <span class="label">Reorder Threshold:</span>
+            <span class="value">{{ product().reorderThreshold }} uds</span>
+          </div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar" 
+               [ngClass]="isCritical() ? 'bg-critical' : 'bg-warning'"
+               [style.width.%]="ratio() * 100">
+          </div>
+        </div>
+
+        @if (isCritical()) {
+          <div class="alert-status text-critical">
+            ⚠ Level critical! (Below 25% of reorder threshold)
+          </div>
+        }
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-secondary btn-full" (click)="onRestockClick()">
+          Simulate Restock Order
+        </button>
+      </div>
+    </div>

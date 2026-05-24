@@ -8,6 +8,7 @@ import { StockMovementRequest } from "../data/requests/stock-movement.request";
 
 const initialState: StockState = {
   history: [],
+  lowStockAlerts: [],
   loading: false,
   error: null,
   success: false,
@@ -32,9 +33,24 @@ export const StockStore = signalStore(
       )
     );
 
+    const loadLowStockAlerts = rxMethod<void>(
+      pipe(
+        tap(() => patchState(store, { loading: true, error: null })),
+        switchMap(() =>
+          stockService.getLowStockAlerts().pipe(
+            tap({
+              next: (alerts) => patchState(store, { lowStockAlerts: alerts, loading: false }),
+              error: () => patchState(store, { error: 'Failed to load low stock alerts.', loading: false })
+            })
+          )
+        )
+      )
+    );
+
     return {
       loadHistory,
-      
+      loadLowStockAlerts,
+
       executeMovement(request: StockMovementRequest, onSuccess: () => void): void {
         patchState(store, { loading: true, error: null, success: false });
         
@@ -42,6 +58,7 @@ export const StockStore = signalStore(
           next: () => {
             patchState(store, { success: true });
             loadHistory(request.productId);
+            loadLowStockAlerts();
             onSuccess();
           },
           error: () => patchState(store, { error: 'Backend rejected stock transaction update.', loading: false })

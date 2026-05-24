@@ -1,0 +1,30 @@
+<div class="page-header" style="margin-bottom: 2rem;">
+      <div>
+        <h2>Low Stock Intelligence Center</h2>
+        <p style="color: var(--text-muted); margin: 0;">Items executing below safe reorder operational thresholds</p>
+      </div>
+      <button class="btn-primary" (click)="stockStore.loadLowStockAlerts()" [disabled]="stockStore.loading()">
+        🔄 Refresh Alerts
+      </button>
+    </div>
+
+    @if (stockStore.loading()) {
+      <div class="loading-spinner">Analyzing global inventory balances...</div>
+    } @else {
+      
+      <div class="dashboard-grid">
+        @for (item of stockStore.lowStockAlerts(); track item.id) {
+          <app-low-stock-card 
+            [product]="item"
+            (triggerRestock)="handleSimulatedRestock($event)"
+          />
+        } @empty {
+          <div class="empty-state-full" style="grid-column: 1 / -1; text-align: center; padding: 4rem; background: #fff; border-radius: var(--radius); border: 1px dashed var(--border);">
+            <span style="font-size: 2.5rem;">🎉</span>
+            <h3 style="margin-top: 1rem;">Warehouse Optimal</h3>
+            <p style="color: var(--text-muted); margin: 0;">All catalog product SKUs are safely balanced above reorder constraints.</p>
+          </div>
+        }
+      </div>
+
+    }
