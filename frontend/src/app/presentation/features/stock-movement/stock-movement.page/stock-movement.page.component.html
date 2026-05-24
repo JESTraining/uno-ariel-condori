@@ -1,41 +1,50 @@
 <div class="page-header">
-      <h2>Warehouse Inventory Stock Management</h2>
-    </div>
+    <h2>Warehouse Inventory Stock Management</h2>
+</div>
 
-    <div class="filter-container" style="margin-bottom: 1.5rem;">
-      <div style="display: flex; flex-direction: column; width: 100%;">
+<div class="filter-container" style="margin-bottom: 2rem;">
+    <app-product-search (productSelected)="onProductSelect($event)" />
+</div>
+
+<!-- <div class="filter-container" style="margin-bottom: 1.5rem;">
+    <div style="display: flex; flex-direction: column; width: 100%;">
         <label style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-muted);">
-          Select Target Warehouse Product Workspace:
+            Select Target Warehouse Product Workspace:
         </label>
         <select class="category-select" (change)="onProductSelect($event)">
-          <option value="">-- Choose inventory item to audit --</option>
-          @for (p of catalogStore.products(); track p.id) {
+            <option value="">-- Choose inventory item to audit --</option>
+            @for (p of catalogStore.products(); track p.id) {
             <option [value]="p.id">{{ p.name }} (SKU: {{ p.sku }}) - Stock: {{ p.currentStock }}</option>
-          }
+            }
         </select>
-      </div>
+    </div>
+</div> -->
+
+@if (stockStore.error()) {
+<div class="error-banner"
+    style="background: var(--danger-bg); color: var(--danger); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
+    {{ stockStore.error() }}
+</div>
+}
+
+@if (activeProduct()) {
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <div class="product-summary-badge"
+        style="background: #f8fafc; padding: 1rem; border-radius: var(--radius); border-left: 4px solid #2563eb;">
+        <h4 style="margin: 0 0 0.25rem 0;">{{ activeProduct()?.name }}</h4>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+            SKU: <strong>{{ activeProduct()?.sku }}</strong> | Current Stock in Warehouse: <strong>{{
+                activeProduct()?.currentStock }} units</strong>
+        </span>
     </div>
 
-    @if (stockStore.error()) {
-      <div class="error-banner" style="background: var(--danger-bg); color: var(--danger); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
-        {{ stockStore.error() }}
-      </div>
+    <app-movement-form [selectedProduct]="activeProduct()" (submitMovement)="onPostMovement($event)" />
+
+    @if (stockStore.loading()) {
+    <div class="loading-spinner">Syncing transactional logs...</div>
+    } @else {
+    <h3 style="margin-top: 1rem;">Transaction Audit Trail Log Ledger</h3>
+    <app-movement-history [history]="stockStore.history()" />
     }
-
-    @if (activeProduct()) {
-      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
-        
-        <app-movement-form 
-          [selectedProduct]="activeProduct()"
-          (submitMovement)="onPostMovement($event)"
-        />
-
-        @if (stockStore.loading()) {
-          <div class="loading-spinner">Syncing transactional logs...</div>
-        } @else {
-          <h3 style="margin-top: 1rem;">Transaction Audit Trail Log Ledger</h3>
-          <app-movement-history [history]="stockStore.history()" />
-        }
-
-      </div>
-    }
+</div>
+}

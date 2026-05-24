@@ -11,12 +11,12 @@
           <div class="metric">
             <span class="label">Current Stock:</span>
             <span class="value" [ngClass]="isCritical() ? 'text-critical' : 'text-warning'">
-              {{ product().currentStock }} uds
+              {{ product().currentStock }} units
             </span>
           </div>
           <div class="metric">
             <span class="label">Reorder Threshold:</span>
-            <span class="value">{{ product().reorderThreshold }} uds</span>
+            <span class="value">{{ product().reorderThreshold }} units</span>
           </div>
         </div>
 

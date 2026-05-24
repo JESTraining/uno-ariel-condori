@@ -5,11 +5,12 @@ import { StockStore } from '../../../../stores/stock.store';
 import { MovementFormComponent } from '../movement-form/movement-form.component';
 import { MovementHistoryComponent } from '../movement-history/movement-history.component';
 import { StockMovementRequest } from '../../../../data/requests/stock-movement.request';
+import { ProductSearchComponent } from '../product-search/product-search.component';
 
 @Component({
   selector: 'app-stock-movement.page',
   standalone: true,
-  imports: [MovementFormComponent, MovementHistoryComponent],
+  imports: [MovementFormComponent, MovementHistoryComponent, ProductSearchComponent],
   templateUrl: './stock-movement.page.component.html',
   styleUrl: './stock-movement.page.component.scss'
 })
@@ -31,19 +32,10 @@ export class StockMovementPage {
       }
     }, { allowSignalWrites: true });
   }
-
-  onProductSelect(event: Event): void {
-    const id = (event.target as HTMLSelectElement).value;
-    if (!id) {
-      this.activeProduct.set(null);
-      return;
-    }
-
-    const selected = this.catalogStore.products().find(p => p.id === id);
-    if (selected) {
-      this.activeProduct.set(selected as unknown as ProductListItemDto);
-      this.stockStore.loadHistory(id);
-    }
+  
+  onProductSelect(product: ProductListItemDto): void {
+    this.activeProduct.set(product);
+    this.stockStore.loadHistory(product.id);
   }
 
   onPostMovement(request: StockMovementRequest): void {
