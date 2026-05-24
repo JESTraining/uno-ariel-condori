@@ -1,12 +1,14 @@
 import {Component, computed, input, output} from '@angular/core';
 import {CurrencyPipe} from '@angular/common';
 import {ProductListItemDto} from '../../../../data/dto/product-list-item.dto';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-product-table',
   standalone: true,
   imports: [
-    CurrencyPipe
+    CurrencyPipe,
+    RouterLink
   ],
   templateUrl: './product-table.component.html',
   styleUrl: './product-table.component.scss'

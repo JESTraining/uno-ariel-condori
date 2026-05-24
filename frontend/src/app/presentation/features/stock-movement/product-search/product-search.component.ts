@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, effect, inject, input, output, signal } from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { tap, filter, debounceTime, distinctUntilChanged, switchMap, map } from 'rxjs';
 import { ProductListItemDto } from '../../../../data/dto/product-list-item.dto';
@@ -18,13 +18,20 @@ export class ProductSearchComponent {
   private productService = inject(ProductService);
   
   productSelected = output<ProductListItemDto>();
-  
+  initialProduct = input<ProductListItemDto | null>(null);
   searchControl = new FormControl('', { nonNullable: true });
   results = signal<ProductListItemDto[]>([]);
   loading = signal(false);
   showResults = signal(false);
 
   constructor() {
+    effect(() => {
+      const initial = this.initialProduct();
+      if (initial) {
+        this.searchControl.setValue(initial.name, { emitEvent: false });
+      }
+    });
+    
     this.searchControl.valueChanges.pipe(
       tap(() => {
         if (this.searchControl.value.trim().length < 2) {

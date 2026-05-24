@@ -3,22 +3,8 @@
 </div>
 
 <div class="filter-container" style="margin-bottom: 2rem;">
-    <app-product-search (productSelected)="onProductSelect($event)" />
+    <app-product-search [initialProduct]="activeProduct()" (productSelected)="onProductSelect($event)" />
 </div>
-
-<!-- <div class="filter-container" style="margin-bottom: 1.5rem;">
-    <div style="display: flex; flex-direction: column; width: 100%;">
-        <label style="margin-bottom: 0.5rem; font-weight: 500; color: var(--text-muted);">
-            Select Target Warehouse Product Workspace:
-        </label>
-        <select class="category-select" (change)="onProductSelect($event)">
-            <option value="">-- Choose inventory item to audit --</option>
-            @for (p of catalogStore.products(); track p.id) {
-            <option [value]="p.id">{{ p.name }} (SKU: {{ p.sku }}) - Stock: {{ p.currentStock }}</option>
-            }
-        </select>
-    </div>
-</div> -->
 
 @if (stockStore.error()) {
 <div class="error-banner"

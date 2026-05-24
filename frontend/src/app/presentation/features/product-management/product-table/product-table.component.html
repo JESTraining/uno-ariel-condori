@@ -28,6 +28,13 @@
           <td>
             <button class="btn-edit" (click)="edit.emit(product.id)">Edit</button>
             <button class="btn-delete" (click)="delete.emit(product.id)">Delete</button>
+            <button
+              [routerLink]="['/stock-movements']" 
+              [queryParams]="{ productId: product.id }"
+              class="btn-edit"
+              title="Register Movement">
+              🔄 Movements
+            </button>
           </td>
         </tr>
       } @empty {
