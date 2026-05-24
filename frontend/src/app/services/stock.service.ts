@@ -5,6 +5,8 @@ import { ProductDetailsDto } from '../data/dto/product-details.dto';
 import { StockMovementRequest } from '../data/requests/stock-movement.request';
 import { ApiService } from './api.service';
 import { StockMovementResultDto } from '../data/dto/stock-movement.result.dto';
+import { ProductListItemDto } from '../data/dto/product-list-item.dto';
+import { StockMovementDto } from '../data/dto/stock-movement.dto';
 
 @Injectable({
   providedIn: 'root'
@@ -17,5 +19,13 @@ export class StockService extends ApiService {
 
   saveMovement(request: StockMovementRequest): Observable<StockMovementResultDto> {
     return this.post<StockMovementResultDto>(request, 'movements');
+  }
+
+  getLowStockAlerts(): Observable<ProductListItemDto[]> {
+    return this.get<ProductListItemDto[]>(`alert/low`);
+  }
+
+  getMovementHistory(productId: string): Observable<StockMovementDto[]> {
+    return this.get<StockMovementDto[]>(`movements/${productId}`);
   }
 }

@@ -1,0 +1,32 @@
+<div class="form-card">
+      <h3>Log Stock Movement</h3>
+      <form [formGroup]="movementForm" (ngSubmit)="onSubmit()">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Action Type</label>
+            <select formControlName="reason" (change)="validateNegativeStock()">
+              <option value="received">Received (+)</option>
+              <option value="shipped">Shipped (-)</option>
+            </select>        
+          </div>
+
+          <div class="form-group">
+            <label>Quantity</label>
+            <input formControlName="quantity" type="number" min="1" (input)="validateNegativeStock()" />
+          </div>
+        </div>
+
+        @if (underflowError()) {
+          <div class="error-msg" style="color: var(--danger); font-size: 0.9rem; margin-bottom: 1rem; font-weight: 500;">
+            ⚠ Transaction Aborted: Shipping quantity exceeds current available warehouse balance ({{ selectedProduct()?.currentStock }} units).
+          </div>
+        }
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="movementForm.invalid || underflowError()">
+            Apply Inventory Change
+          </button>
+        </div>
+      </form>
+    </div>

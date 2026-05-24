@@ -17,5 +17,11 @@ export const routes: Routes = [
     loadComponent: () => 
       import('./presentation/features/barcode/barcode-scan.page/barcode-scan.page.component')
         .then(m => m.BarcodeScanPage)
+  },
+  {
+    path: 'stock-movements',
+    loadComponent: () => 
+      import('./presentation/features/stock-movement/stock-movement.page/stock-movement.page.component')
+        .then(m => m.StockMovementPage)
   }
 ];

@@ -1,0 +1,34 @@
+<div class="table-responsive" style="margin-top: 1.5rem;">
+      <table>
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Quantity Change</th>
+            <th>Running Balance</th>
+            <th>Reason</th>
+            <th>Operator</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (log of history(); track log.id) {
+            <tr>
+              <td>{{ log.createdAt | date: 'medium' }}</td>
+              <td>
+                <span [ngClass]="log.reason === 'shipped' || log.quantityChange < 0 ? 'text-danger' : 'text-success'" style="font-weight: bold;">
+                  {{ log.reason === 'shipped' ? '-' : (log.reason === 'received' ? '+' : (log.quantityChange < 0 ? '-' : '+')) }}{{ log.quantityChange < 0 ? -log.quantityChange : log.quantityChange }} units
+                </span>
+              </td>
+              <td><strong>{{ log.newStock }} units</strong></td>
+              <td>{{ log.reason }}</td>
+              <td><small style="color: var(--text-muted);">{{ log.createdBy }}</small></td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                No transactional history found for this product.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+</div>
