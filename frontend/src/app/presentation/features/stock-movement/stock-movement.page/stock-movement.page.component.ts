@@ -8,17 +8,22 @@ import { StockMovementRequest } from '../../../../data/requests/stock-movement.r
 import { ProductSearchComponent } from '../product-search/product-search.component';
 import { ActivatedRoute } from '@angular/router';
 import { ProductService } from '../../../../services/product.service';
+import { InventoryErrorBannerComponent } from '../../../shared/inventory-error-banner/inventory-error-banner.component';
 
 @Component({
   selector: 'app-stock-movement.page',
   standalone: true,
-  imports: [MovementFormComponent, MovementHistoryComponent, ProductSearchComponent],
+  imports: [MovementFormComponent, 
+    MovementHistoryComponent, 
+    ProductSearchComponent,
+    InventoryErrorBannerComponent
+  ],
   templateUrl: './stock-movement.page.component.html',
   styleUrl: './stock-movement.page.component.scss'
 })
 
 export class StockMovementPage implements OnInit {
-  protected catalogStore = inject(ProductStore);
+  protected productStore = inject(ProductStore);
   protected stockStore = inject(StockStore);
   private route = inject(ActivatedRoute);
   private productService = inject(ProductService);
@@ -29,7 +34,7 @@ export class StockMovementPage implements OnInit {
     effect(() => {
       const currentSelection = this.activeProduct();
       if (currentSelection) {
-        const matchingProduct = this.catalogStore.products().find(p => p.id === currentSelection.id);
+        const matchingProduct = this.productStore.products().find(p => p.id === currentSelection.id);
         if (matchingProduct) {
           this.activeProduct.set(matchingProduct as unknown as ProductListItemDto);
         }
@@ -40,14 +45,7 @@ export class StockMovementPage implements OnInit {
   ngOnInit(): void {
     const productId = this.route.snapshot.queryParamMap.get('productId');
     if (productId) {
-      this.productService.getProductById(productId).subscribe({
-        next: (product) => {
-          const listItem = { ...(product as any), isLowStock: product.currentStock < product.reorderThreshold } as ProductListItemDto;
-          this.activeProduct.set(listItem);
-          this.stockStore.loadHistory(product.id);
-        },
-        error: () => console.error('Failed to load product for stock movement page')
-      });
+      this.loadFreshProductData(productId);
     }
   }
 
@@ -56,9 +54,33 @@ export class StockMovementPage implements OnInit {
     this.stockStore.loadHistory(product.id);
   }
 
-  onPostMovement(request: StockMovementRequest): void {
-    this.stockStore.executeMovement(request, () => {
-      this.catalogStore.loadProducts(this.catalogStore.filters());
+  onPostMovement(payload: { request: StockMovementRequest; onSuccess: () => void }): void {
+    this.stockStore.executeMovement(payload.request, () => {
+      this.refreshActiveProductState();
+      try {
+        payload.onSuccess();
+      } catch (e) {
+        // ignore UI reset errors
+      }
+    });
+  }
+
+  refreshActiveProductState(): void {
+    const current = this.activeProduct();
+    if (current) {
+      this.loadFreshProductData(current.id);
+    }
+  }
+
+  private loadFreshProductData(productId: string): void {
+    this.productService.getProductById(productId).subscribe({
+      next: (product) => {
+        const listItem = { ...(product as any), isLowStock: product.currentStock < product.reorderThreshold } as ProductListItemDto;
+        this.activeProduct.set(listItem);
+        this.stockStore.loadHistory(product.id);
+        this.productStore.updateProductFromMovement(product.id, product.currentStock, product.version);
+      },
+      error: () => console.error('Error refreshing product data after stock movement. Please try again.')
     });
   }
 }

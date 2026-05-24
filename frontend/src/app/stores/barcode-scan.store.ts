@@ -46,14 +46,15 @@ export const BarcodeScanStore = signalStore(
       },
       applyAdjustment(quantityChange: number, reason: string): void {
         const product = store.scannedProduct();
-        if (!product) return;
-
+        if (!product) 
+            return;
+        
         if (product.currentStock + quantityChange < 0) {
           patchState(store, { error: 'Transaction aborted: Stock cannot fall below zero.' });
           return;
         }
 
-        patchState(store, { loading: true, error: null });
+        patchState(store, { loading: true, error: null, successMessage: null });
         
         stockService.saveMovement({ productId: product.id, quantityChange, reason, version: product.version }).subscribe({
           next: (response: StockMovementResultDto) => {
@@ -66,7 +67,7 @@ export const BarcodeScanStore = signalStore(
                 : null
             }));
           },
-          error: () => patchState(store, { error: 'Failed to record stock adjustment.', loading: false })
+          error: (err: Error) => patchState(store, { error: 'Failed: ' + err.message, loading: false })
         });
       }
     };

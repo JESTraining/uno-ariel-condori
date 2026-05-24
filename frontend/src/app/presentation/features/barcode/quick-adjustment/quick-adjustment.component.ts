@@ -19,7 +19,7 @@ export class QuickAdjustmentComponent implements OnInit {
   submitAdjustment = output<{ quantity: number; reason: string }>();
 
   adjustForm = this.fb.group({
-    quantity: [1, [Validators.required]],
+    quantity: [0, [Validators.required]],
     reason: ['received', [Validators.required]]
   });
 
@@ -77,7 +77,7 @@ export class QuickAdjustmentComponent implements OnInit {
       reason: values.reason
     });
 
-    this.adjustForm.patchValue({ quantity: 1, reason: 'received' });
+    this.adjustForm.patchValue({ quantity: 0, reason: 'received' });
     this.adjustForm.markAsPristine();
     this.adjustForm.markAsUntouched();
   }

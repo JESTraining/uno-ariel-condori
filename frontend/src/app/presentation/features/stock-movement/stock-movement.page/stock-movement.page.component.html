@@ -6,12 +6,7 @@
     <app-product-search [initialProduct]="activeProduct()" (productSelected)="onProductSelect($event)" />
 </div>
 
-@if (stockStore.error()) {
-<div class="error-banner"
-    style="background: var(--danger-bg); color: var(--danger); padding: 1rem; border-radius: var(--radius); margin-bottom: 1.5rem;">
-    {{ stockStore.error() }}
-</div>
-}
+<app-inventory-error-banner [error]="stockStore.error()" (retrySync)="refreshActiveProductState()"/>
 
 @if (activeProduct()) {
 <div style="display: flex; flex-direction: column; gap: 1.5rem;">

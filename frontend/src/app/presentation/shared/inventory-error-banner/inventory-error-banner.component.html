@@ -1,0 +1,17 @@
+@if (error()) {
+<div class="error-banner">
+    <div class="error-message-layout">
+        <span class="error-icon">⚠️</span>
+        <div class="error-text-zone">
+            <strong class="error-title">Error</strong>
+            <p class="error-body">{{ error() }}</p>
+        </div>
+    </div>
+
+    @if (isConcurrencyConflict()) {
+    <button type="button" class="btn-retry-sync" (click)="retrySync.emit()">
+        🔄 Retry Sync
+    </button>
+    }
+</div>
+}

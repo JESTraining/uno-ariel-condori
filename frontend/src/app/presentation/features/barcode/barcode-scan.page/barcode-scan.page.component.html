@@ -10,11 +10,10 @@
       <div class="loading-spinner" style="margin: 1rem 0;">Querying warehouse register...</div>
     }
 
-    @if (store.error()) {
-      <div class="error-banner alert" style="background: var(--danger-bg); padding: 1rem; border-radius: var(--radius); margin: 1rem 0; color: var(--danger);">
-        <strong>Alert:</strong> {{ store.error() }}
-      </div>
-    }
+    <app-inventory-error-banner 
+        [error]="store.error()" 
+        (retrySync)="onResyncScannedItem()" 
+      />
 
     @if (store.successMessage()) {
       <div class="success-banner" style="background: #dcfce7; padding: 1rem; border-radius: var(--radius); margin: 1rem 0; color: var(--success);">

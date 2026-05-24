@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { API_BASE_URL } from '../app.config';
 import { inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
 export abstract class ApiService {
@@ -32,8 +32,7 @@ export abstract class ApiService {
   }
 
   protected handleError = (err: any) => {
-    console.error('API request failed', err);
-    throw err;
+    return throwError(() => err);
   };
 }
 

@@ -15,13 +15,13 @@ export class MovementFormComponent {
   private fb = inject(NonNullableFormBuilder);
   
   selectedProduct = input<ProductListItemDto | null>(null);
-  submitMovement = output<StockMovementRequest>();
+  submitMovement = output<{ request: StockMovementRequest; onSuccess: () => void }>();
 
   underflowError = signal<boolean>(false);
 
   movementForm = this.fb.group({
     reason: ['received', [Validators.required]],
-    quantity: [1, [Validators.required, Validators.min(1)]],
+    quantity: [0, [Validators.required, Validators.min(1)]],
   });
 
   constructor() {
@@ -53,14 +53,18 @@ export class MovementFormComponent {
 
     const values = this.movementForm.getRawValue();
 
-    this.submitMovement.emit({
+    const req: StockMovementRequest = {
       productId: product.id,
       quantityChange: values.quantity,
       reason: values.reason,
       version: product.version
-    });
+    };
 
-    this.movementForm.controls.reason.reset();
-    this.movementForm.controls.quantity.setValue(1);
+    const onSuccess = () => {
+      this.movementForm.controls.reason.reset();
+      this.movementForm.controls.quantity.setValue(0);
+    };
+
+    this.submitMovement.emit({ request: req, onSuccess });
   }
 }

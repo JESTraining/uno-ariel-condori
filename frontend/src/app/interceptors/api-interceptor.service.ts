@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
+import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { API_BASE_URL } from '../app.config';
@@ -14,10 +14,20 @@ export class ApiInterceptor implements HttpInterceptor {
 
     const cloned = req.clone({ url });
 
-    return next.handle(cloned).pipe(
+    return next.handle(cloned).pipe(      
       catchError(err => {
+        let processedErrorMessage = 'An unexpected server error occurred.';
+        console.error('API error intercepted:', err);
+        if(err instanceof HttpErrorResponse) {
+          if(err.status === 409) {
+            processedErrorMessage = err.error?.message || 'Conflict error occurred.';
+          } else {
+            processedErrorMessage = err.error?.message || `HTTP error ${err.status}: ${err.statusText}` || processedErrorMessage;
+          }
+        }
+
         console.error('HTTP error', err);
-        return throwError(() => err);
+        return throwError(() => new Error(processedErrorMessage));
       })
     );
   }
