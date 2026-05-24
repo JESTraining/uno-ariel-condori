@@ -5,6 +5,8 @@ import { pipe, tap, switchMap } from "rxjs";
 import { StockState } from "../data/State/stock.state";
 import { StockService } from "../services/stock.service";
 import { StockMovementRequest } from "../data/requests/stock-movement.request";
+import { ProductStore } from "./product.store";
+import { StockMovementResultDto } from "../data/dto/stock-movement.result.dto";
 
 const initialState: StockState = {
   history: [],
@@ -17,7 +19,7 @@ const initialState: StockState = {
 export const StockStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withMethods((store, stockService = inject(StockService)) => {
+  withMethods((store, stockService = inject(StockService), productStore = inject(ProductStore)) => {
     
     const loadHistory = rxMethod<string>(
       pipe(
@@ -55,8 +57,9 @@ export const StockStore = signalStore(
         patchState(store, { loading: true, error: null, success: false });
         
         stockService.saveMovement(request).subscribe({
-          next: () => {
+          next: (response: StockMovementResultDto) => {
             patchState(store, { success: true });
+            productStore.updateProductFromMovement(request.productId, response.newStock, response.version);
             loadHistory(request.productId);
             loadLowStockAlerts();
             onSuccess();

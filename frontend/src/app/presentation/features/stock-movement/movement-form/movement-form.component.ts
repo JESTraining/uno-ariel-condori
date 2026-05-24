@@ -30,7 +30,7 @@ export class MovementFormComponent {
       if (this.selectedProduct()) {
         this.validateNegativeStock();
       }
-    });
+    }, { allowSignalWrites: true });
   }
 
   validateNegativeStock(): void {

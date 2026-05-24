@@ -6,6 +6,7 @@ import { BarcodeScanState } from "../data/State/barcode-scan.state";
 import { StockService } from "../services/stock.service";
 import { ProductService } from "../services/product.service";
 import { StockMovementResultDto } from "../data/dto/stock-movement.result.dto";
+import { ProductStore } from "./product.store";
 
 const initialState: BarcodeScanState = {
   scannedProduct: null,
@@ -17,7 +18,8 @@ const initialState: BarcodeScanState = {
 export const BarcodeScanStore = signalStore(
   withState(initialState),
   withMethods((store, stockService = inject(StockService), 
-    productService = inject(ProductService)) => {
+    productService = inject(ProductService),
+    productStore = inject(ProductStore)) => {
     
     const lookupBarcode = rxMethod<string>(
       pipe(
@@ -55,6 +57,7 @@ export const BarcodeScanStore = signalStore(
         
         stockService.saveMovement({ productId: product.id, quantityChange, reason, version: product.version }).subscribe({
           next: (response: StockMovementResultDto) => {
+            productStore.updateProductFromMovement(product.id, response.newStock, response.version);
             patchState(store, (state) => ({
               loading: false,
               successMessage: 'Stock adjusted successfully!',

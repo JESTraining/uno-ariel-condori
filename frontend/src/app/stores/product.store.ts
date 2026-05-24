@@ -6,6 +6,7 @@ import {inject} from '@angular/core';
 import {ProductQuery} from '../data/dto/product-query.dto';
 import {rxMethod} from '@ngrx/signals/rxjs-interop';
 import { CreateProductRequest } from '../data/requests/create-product.request';
+import { ProductListItemDto } from '../data/dto/product-list-item.dto';
 
 const initialState: ProductState = {
   products: [],
@@ -42,6 +43,28 @@ export const ProductStore = signalStore(
 
     return {
       loadProducts,
+
+      updateProductFromMovement(productId: string, currentStock: number, version: string): void {
+        patchState(store, (state: ProductState) => ({
+          products: state.products.map((product: ProductListItemDto) =>
+            product.id === productId
+              ? {
+                  ...product,
+                  currentStock,
+                  version,
+                  isLowStock: currentStock < product.reorderThreshold
+                }
+              : product
+          ),
+          selectedProduct: state.selectedProduct?.id === productId
+            ? {
+                ...state.selectedProduct,
+                currentStock,
+                version
+              }
+            : state.selectedProduct
+        }));
+      },
 
       createProduct(request: CreateProductRequest, onSuccess: () => void): void {
         patchState(store, { loading: true });
