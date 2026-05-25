@@ -26,14 +26,12 @@ public class ProductRepository(WarehouseDbContext dbContext) : IProductRepositor
 
         if (!string.IsNullOrWhiteSpace(query.Category))
         {
-            var category = query.Category.Trim().ToLower();
-            products = products.Where(product => product.Category != null && product.Category.Name.ToLower() == category);
+            products = products.Where(product => product.Category != null && product.Category.Id == query.Category);
         }
 
         if (!string.IsNullOrWhiteSpace(query.Location))
         {
-            var location = query.Location.Trim().ToLower();
-            products = products.Where(product => product.Location != null && product.Location.Name.ToLower() == location);
+            products = products.Where(product => product.Location != null && product.Location.Id == query.Location);
         }
 
         var totalCount = await products.CountAsync(cancellationToken);
