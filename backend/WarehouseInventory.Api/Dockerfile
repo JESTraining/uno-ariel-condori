@@ -2,9 +2,14 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
 COPY backend/WarehouseInventory.Api/WarehouseInventory.Api.csproj backend/WarehouseInventory.Api/
+COPY backend/WarehouseInventory.Api.Tests/WarehouseInventory.Api.Tests.csproj backend/WarehouseInventory.Api.Tests/
 RUN dotnet restore backend/WarehouseInventory.Api/WarehouseInventory.Api.csproj
+RUN dotnet restore backend/WarehouseInventory.Api.Tests/WarehouseInventory.Api.Tests.csproj
 
-COPY backend/WarehouseInventory.Api/ backend/WarehouseInventory.Api/
+COPY backend/ backend/
+WORKDIR /src/backend/WarehouseInventory.Api.Tests
+RUN dotnet test WarehouseInventory.Api.Tests.csproj -c Release --logger:console
+
 WORKDIR /src/backend/WarehouseInventory.Api
 RUN dotnet publish WarehouseInventory.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
 
