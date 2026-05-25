@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using AutoMapper;
@@ -69,9 +71,10 @@ public class ProductService(
         }
         catch (DbUpdateException exception) when (IsUniqueViolation(exception))
         {
-            logger.LogWarning("Product creation failed due to unique constraint violation. SKU: {SKU}, Barcode: {Barcode}", 
-                request.Sku, request.Barcode);
-            throw new InvalidOperationException("SKU or barcode already exists.", exception);
+            var field = GetUniqueViolationField(exception) ?? "SKU or barcode";
+            logger.LogWarning("Product creation failed due to unique constraint violation on {Field}. SKU: {SKU}, Barcode: {Barcode}", 
+                field, request.Sku, request.Barcode);
+            throw new InvalidOperationException($"{field} already exists.", exception);
         }
 
         return mapper.Map<ProductDetailsDto>(product);
@@ -117,8 +120,9 @@ public class ProductService(
         }
         catch (DbUpdateException exception) when (IsUniqueViolation(exception))
         {
-            logger.LogWarning("Product update failed due to unique constraint violation. ID: {ProductId}, SKU: {SKU}", id, request.Sku);
-            throw new InvalidOperationException("SKU or barcode already exists.", exception);
+            var field = GetUniqueViolationField(exception) ?? "SKU or barcode";
+            logger.LogWarning("Product update failed due to unique constraint violation on {Field}. ID: {ProductId}, SKU: {SKU}", field, id, request.Sku);
+            throw new InvalidOperationException($"{field} already exists.", exception);
         }
 
         return mapper.Map<ProductDetailsDto>(product);
@@ -144,6 +148,26 @@ public class ProductService(
 
     private static bool IsUniqueViolation(DbUpdateException exception) =>
         exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
+
+    private static string? GetUniqueViolationField(DbUpdateException exception)
+    {
+        if (exception.InnerException is not PostgresException pe || pe.SqlState != PostgresErrorCodes.UniqueViolation)
+            return null;
+
+        var detail = pe.Detail ?? string.Empty;
+        if (detail.Contains("(sku)", StringComparison.OrdinalIgnoreCase) || detail.Contains("key (sku)", StringComparison.OrdinalIgnoreCase))
+            return "SKU";
+        if (detail.Contains("(barcode)", StringComparison.OrdinalIgnoreCase) || detail.Contains("key (barcode)", StringComparison.OrdinalIgnoreCase))
+            return "Barcode";
+
+        var constraint = pe.ConstraintName ?? string.Empty;
+        if (constraint.IndexOf("sku", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "SKU";
+        if (constraint.IndexOf("barcode", StringComparison.OrdinalIgnoreCase) >= 0)
+            return "Barcode";
+
+        return null;
+    }
 
     private async Task<Category> GetOrCreateCategoryAsync(string id, CancellationToken cancellationToken)
     {
