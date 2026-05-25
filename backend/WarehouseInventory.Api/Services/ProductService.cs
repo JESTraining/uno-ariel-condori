@@ -147,24 +147,42 @@ public class ProductService(
     }
 
     private static bool IsUniqueViolation(DbUpdateException exception) =>
-        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
+        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation } ||
+        exception.InnerException!.Message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase);
 
     private static string? GetUniqueViolationField(DbUpdateException exception)
     {
-        if (exception.InnerException is not PostgresException pe || pe.SqlState != PostgresErrorCodes.UniqueViolation)
-            return null;
+        // Postgres-specific parsing
+        if (exception.InnerException is PostgresException pe && pe.SqlState == PostgresErrorCodes.UniqueViolation)
+        {
+            var detail = pe.Detail ?? string.Empty;
+            if (detail.Contains("(sku)", StringComparison.OrdinalIgnoreCase) || detail.Contains("key (sku)", StringComparison.OrdinalIgnoreCase))
+                return "SKU";
+            if (detail.Contains("(barcode)", StringComparison.OrdinalIgnoreCase) || detail.Contains("key (barcode)", StringComparison.OrdinalIgnoreCase))
+                return "Barcode";
 
-        var detail = pe.Detail ?? string.Empty;
-        if (detail.Contains("(sku)", StringComparison.OrdinalIgnoreCase) || detail.Contains("key (sku)", StringComparison.OrdinalIgnoreCase))
-            return "SKU";
-        if (detail.Contains("(barcode)", StringComparison.OrdinalIgnoreCase) || detail.Contains("key (barcode)", StringComparison.OrdinalIgnoreCase))
-            return "Barcode";
+            var constraint = pe.ConstraintName ?? string.Empty;
+            if (constraint.IndexOf("sku", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "SKU";
+            if (constraint.IndexOf("barcode", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Barcode";
+        }
 
-        var constraint = pe.ConstraintName ?? string.Empty;
-        if (constraint.IndexOf("sku", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "SKU";
-        if (constraint.IndexOf("barcode", StringComparison.OrdinalIgnoreCase) >= 0)
-            return "Barcode";
+        // Fallback parsing for generic providers (message contains column or table.column)
+        var msg = exception.InnerException?.Message ?? string.Empty;
+        if (msg.IndexOf("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            msg.IndexOf("unique constraint", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            if (msg.IndexOf("sku", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "SKU";
+            if (msg.IndexOf("barcode", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Barcode";
+
+            if (msg.IndexOf(".Sku", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "SKU";
+            if (msg.IndexOf(".Barcode", StringComparison.OrdinalIgnoreCase) >= 0)
+                return "Barcode";
+        }
 
         return null;
     }
