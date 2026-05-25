@@ -8,8 +8,8 @@
 
   <select [formControl]="filterForm.controls.category" class="category-select">
     <option value="">All Categories</option>
-    <option value="Storage">Storage</option>
-    <option value="Tools">Tools</option>
-    <option value="Electronics">Electronics</option>
+    @for (cat of categories(); track cat.id) {
+      <option value="{{cat.id}}">{{cat.name}}</option>
+    }
   </select>
 </div>

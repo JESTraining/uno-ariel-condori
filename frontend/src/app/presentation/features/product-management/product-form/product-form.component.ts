@@ -69,6 +69,9 @@ export class ProductFormComponent implements OnInit {
   }
 
   setupSkuAutoGeneration(): void {
+    if(this.isEditMode()) 
+      return;
+
     merge(
       this.productForm.controls.category.valueChanges,
       this.productForm.controls.location.valueChanges

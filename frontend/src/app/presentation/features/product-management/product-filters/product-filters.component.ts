@@ -1,6 +1,8 @@
-import {Component, DestroyRef, inject, input, OnInit, output} from '@angular/core';
+import {Component, DestroyRef, inject, input, OnInit, output, signal} from '@angular/core';
 import {debounceTime, distinctUntilChanged} from 'rxjs';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import { CatalogService } from '../../../../services/catalog.service';
+import { CatalogItem } from '../../../../data/models/catalog.model';
 import {ProductQuery} from '../../../../data/dto/product-query.dto';
 import {NonNullableFormBuilder, ReactiveFormsModule} from '@angular/forms';
 
@@ -17,6 +19,9 @@ import {NonNullableFormBuilder, ReactiveFormsModule} from '@angular/forms';
 export class ProductFiltersComponent implements OnInit {
   private fb = inject(NonNullableFormBuilder);
   private destroyRef = inject(DestroyRef);
+  private catalogService = inject(CatalogService);
+
+  categories = signal<CatalogItem[]>([]);
 
   initialFilters = input.required<ProductQuery>();
   filterChange = output<Partial<ProductQuery>>();
@@ -27,6 +32,10 @@ export class ProductFiltersComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.catalogService.getCategories().subscribe({
+      next: (cats) => this.categories.set(cats),
+      error: () => this.categories.set([])
+    });
     this.filterForm.patchValue({
       search: this.initialFilters().search || '',
       category: this.initialFilters().category || ''
