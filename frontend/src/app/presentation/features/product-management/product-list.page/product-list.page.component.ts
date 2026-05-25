@@ -6,6 +6,7 @@ import { ProductFormComponent } from '../product-form/product-form.component';
 import { ConfirmModalComponent } from '../../../shared/confirm-modal/confirm-modal.component';
 import { ProductDetailsDto } from '../../../../data/dto/product-details.dto';
 import { CreateProductRequest } from '../../../../data/requests/create-product.request';
+import { ToastService } from '../../../shared/toast/toast.service';
 
 @Component({
   selector: 'app-product-list.page',
@@ -22,6 +23,7 @@ import { CreateProductRequest } from '../../../../data/requests/create-product.r
 
 export class ProductListPage {
   protected store = inject(ProductStore);
+  private toastService = inject(ToastService);
 
   isFormOpen = signal<boolean>(false);
   isDeleteModalOpen = signal<boolean>(false);
@@ -52,9 +54,11 @@ export class ProductListPage {
   onSaveProduct(request: CreateProductRequest): void {
     const product = this.selectedProduct();
     if (product) {
-      this.store.updateProduct(product.id, request, () => this.closeForm());
+      this.store.updateProduct(product.id, request, () => this.closeForm(), 
+        (err: Error) => this.toastService.show('Error: ' + err.message, 'error'));
     } else {
-      this.store.createProduct(request, () => this.closeForm());
+      this.store.createProduct(request, () => this.closeForm(), 
+        (err: Error) => this.toastService.show('Error: ' + err.message, 'error'));
     }
   }
 

@@ -66,25 +66,31 @@ export const ProductStore = signalStore(
         }));
       },
 
-      createProduct(request: CreateProductRequest, onSuccess: () => void): void {
+      createProduct(request: CreateProductRequest, onSuccess: () => void, onError: (err: Error) => void): void {
         patchState(store, { loading: true });
         productService.createProduct(request).subscribe({
           next: () => {
             loadProducts(store.filters());
             onSuccess();
           },
-          error: () => patchState(store, { error: 'Error creating product', loading: false })
+          error: (err: Error) => {
+            patchState(store, { error: 'Error creating product', loading: false });
+            onError(err);
+          }
         });
       },
 
-      updateProduct(id: string, request: Partial<CreateProductRequest>, onSuccess: () => void): void {
+      updateProduct(id: string, request: Partial<CreateProductRequest>, onSuccess: () => void, onError: (err: Error) => void): void {
         patchState(store, { loading: true });
         productService.updateProduct(id, request).subscribe({
           next: () => {
             loadProducts(store.filters());
             onSuccess();
           },
-          error: () => patchState(store, { error: 'Error updating product', loading: false })
+          error: (err: Error) => {
+            patchState(store, { error: 'Error updating product', loading: false });
+            onError(err);
+          }
         });
       },
 
