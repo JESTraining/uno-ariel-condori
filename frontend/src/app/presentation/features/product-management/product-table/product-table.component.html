@@ -8,6 +8,7 @@
       <th>Location</th>
       <th>Price</th>
       <th>Stock</th>
+      <th>Reorder threshold</th>
       <th></th>
     </tr>
     </thead>
@@ -24,7 +25,8 @@
           <td>{{ product.category }}</td>
           <td>{{ product.location }}</td>
           <td>{{ product.price | currency }}</td>
-          <td>{{ product.currentStock }} / {{ product.reorderThreshold }}</td>
+          <td>{{ product.currentStock }}</td>
+          <td>{{ product.reorderThreshold }}</td>
           <td>
             <button class="btn-edit" (click)="edit.emit(product.id)">Edit</button>
             <button class="btn-delete" (click)="delete.emit(product.id)">Delete</button>
