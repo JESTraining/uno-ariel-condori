@@ -1,0 +1,15 @@
+<div class="filter-container">
+  <input
+    [formControl]="filterForm.controls.search"
+    type="text"
+    placeholder="Search by name or SKU..."
+    class="search-input"
+  />
+
+  <select [formControl]="filterForm.controls.category" class="category-select">
+    <option value="">All Categories</option>
+    @for (cat of categories(); track cat.id) {
+      <option value="{{cat.id}}">{{cat.name}}</option>
+    }
+  </select>
+</div>

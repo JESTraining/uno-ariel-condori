@@ -1,0 +1,56 @@
+<div class="table-responsive">
+  <table>
+    <thead>
+    <tr>
+      <th>SKU</th>
+      <th>Product</th>
+      <th>Category</th>
+      <th>Location</th>
+      <th>Price</th>
+      <th>Stock</th>
+      <th>Reorder threshold</th>
+      <th></th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (product of products(); track product.id) {
+        <tr [class.low-stock-row]="product.isLowStock">
+          <td><strong>{{ product.sku }}</strong></td>
+          <td>
+            {{ product.name }}
+            @if (product.isLowStock) {
+              <span class="badge-alert">Low Stock</span>
+            }
+          </td>
+          <td>{{ product.category }}</td>
+          <td>{{ product.location }}</td>
+          <td>{{ product.price | currency }}</td>
+          <td>{{ product.currentStock }}</td>
+          <td>{{ product.reorderThreshold }}</td>
+          <td>
+            <button class="btn-edit" (click)="edit.emit(product.id)">Edit</button>
+            <button class="btn-delete" (click)="delete.emit(product.id)">Delete</button>
+            <button
+              [routerLink]="['/stock-movements']" 
+              [queryParams]="{ productId: product.id }"
+              class="btn-edit"
+              title="Register Movement">
+              🔄 Movements
+            </button>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" class="text-center">No products.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+<!-- Paginación básica -->
+<div class="pagination-controls">
+  <button [disabled]="isFirstPage()" (click)="changePage(-1)"> << </button>
+  <span>Página {{ currentPage() }} of {{ totalPages() }}</span>
+  <button [disabled]="isLastPage()" (click)="changePage(1)"> >> </button>
+</div>

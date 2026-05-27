@@ -1,0 +1,42 @@
+<div class="form-card">
+      <h4>Quick Stock Adjustment</h4>
+      <form [formGroup]="adjustForm" (ngSubmit)="onFormSubmit()">
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Adjustment Type</label>
+            <select formControlName="reason">
+              <option value="received">Received (+)</option>
+              <option value="shipped">Shipped (-)</option>
+              <option value="adjustment">Manual Adjustment</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Quantity Change</label>
+            <input
+              formControlName="quantity"
+              type="number"
+              [attr.min]="adjustForm.controls.reason.value === 'adjustment' ? null : 1"
+            />
+            @if (adjustForm.controls.quantity.touched || adjustForm.controls.quantity.dirty) {
+              @if (adjustForm.controls.quantity.errors?.['quantityMustBePositive']) {
+                <span class="error">Quantity must be a positive number.</span>
+              }
+              @if (adjustForm.controls.quantity.errors?.['quantityCannotBeZero']) {
+                <span class="error">Quantity cannot be zero.</span>
+              }
+              @if (adjustForm.controls.quantity.errors?.['quantityExceedsStock']) {
+                <span class="error">The quantity exceeds the available stock. Max allowed: {{ currentStock() }}.</span>
+              }
+            }
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" [disabled]="adjustForm.invalid">
+            Apply Inventory Change
+          </button>
+        </div>
+      </form>
+    </div>

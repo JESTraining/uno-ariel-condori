@@ -1,0 +1,15 @@
+bin/
+obj/
+node_modules/
+dist/
+.angular/
+.env
+appsettings.Development.json
+*.user
+*.suo
+.vs/
+.idea/
+.vscode/
+TestResults/
+coverage/
+postgres-data/

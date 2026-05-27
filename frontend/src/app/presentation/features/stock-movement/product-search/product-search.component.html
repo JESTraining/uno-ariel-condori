@@ -1,0 +1,29 @@
+<div class="search-container">
+    <label class="search-label">Search Product by Name or SKU and select one:</label>
+
+    <div class="input-wrapper">
+        <input [formControl]="searchControl" type="text" placeholder="Enter to search..."
+            class="search-input" (focus)="onFocus()" (blur)="onBlur()" />
+        @if (loading()) {
+        <span class="search-spinner">⏳</span>
+        }
+    </div>
+
+    @if (showResults() && results().length > 0) {
+    <ul class="results-list">
+        @for (p of results(); track p.id) {
+        <li (mousedown)="selectProduct(p)" class="result-item">
+            <div class="item-info">
+                <span class="item-name">{{ p.name }}</span>
+                <span class="item-meta">SKU: {{ p.sku }} | Stock: {{ p.currentStock }} units</span>
+            </div>
+            <span class="item-location">📍 {{ p.location }}</span>
+        </li>
+        }
+    </ul>
+    } @else if (showResults() && searchControl.value.length >= 2 && !loading()) {
+    <ul class="results-list">
+        <li class="no-results">No items found.</li>
+    </ul>
+    }
+</div>

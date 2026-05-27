@@ -1,0 +1,31 @@
+<div class="page-header">
+    <h2>Warehouse Inventory Stock Management</h2>
+</div>
+
+<div class="filter-container" style="margin-bottom: 2rem;">
+    <app-product-search [initialProduct]="activeProduct()" (productSelected)="onProductSelect($event)" />
+</div>
+
+<app-inventory-error-banner [error]="stockStore.error()" (retrySync)="refreshActiveProductState()"/>
+
+@if (activeProduct()) {
+<div style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <div class="product-summary-badge"
+        style="background: #f8fafc; padding: 1rem; border-radius: var(--radius); border-left: 4px solid #2563eb;">
+        <h4 style="margin: 0 0 0.25rem 0;">{{ activeProduct()?.name }}</h4>
+        <span style="font-size: 0.85rem; color: var(--text-muted);">
+            SKU: <strong>{{ activeProduct()?.sku }}</strong> | Current Stock in Warehouse: <strong>{{
+                activeProduct()?.currentStock }} units</strong>
+        </span>
+    </div>
+
+    <app-movement-form [selectedProduct]="activeProduct()" (submitMovement)="onPostMovement($event)" />
+
+    @if (stockStore.loading()) {
+    <div class="loading-spinner">Syncing transactional logs...</div>
+    } @else {
+    <h3 style="margin-top: 1rem;">Transaction Audit Trail Log Ledger</h3>
+    <app-movement-history [history]="stockStore.history()" />
+    }
+</div>
+}
